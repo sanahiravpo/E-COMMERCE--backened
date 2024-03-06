@@ -1,8 +1,10 @@
 ﻿using AutoMapper;
 using E_COMMERCE_WEBSITE.Context;
+using E_COMMERCE_WEBSITE.JwtServise;
 using E_COMMERCE_WEBSITE.Models;
 using E_COMMERCE_WEBSITE.Models.DTO;
 using E_COMMERCE_WEBSITE.Repositories.categories;
+
 using Microsoft.EntityFrameworkCore;
 
 namespace E_COMMERCE_WEBSITE.Repositories.ProductService
@@ -14,22 +16,23 @@ namespace E_COMMERCE_WEBSITE.Repositories.ProductService
         private readonly IWebHostEnvironment _webHostEnvironment;
         private readonly string HostUrl;
         private readonly IConfiguration _configuration;
+        private readonly IJwtToken _jwtToken;
 
-        public ProductRepository(UserDBContext dbContext, IMapper mapper, IWebHostEnvironment webHostEnvironment, IConfiguration configuration)
+        public ProductRepository(UserDBContext dbContext, IMapper mapper, IWebHostEnvironment webHostEnvironment, IConfiguration configuration, IJwtToken jwtToken)
         {
             _dbContext = dbContext;
             _mapper = mapper;
             _webHostEnvironment = webHostEnvironment;
             _configuration = configuration;
             HostUrl = _configuration["HostUrl:url"];
+            _jwtToken = jwtToken;
         }
 
 
-        public async Task AddProduct(ProductClientDTO productsto,IFormFile image)
+        public async Task AddProduct(ProductDTO productsto,IFormFile image)
       {
-            try
-            {
-                string productImage =null;
+           
+                string productImage = null;
                 if(image!=null && image.Length > 0)
                 {
                     string filename = Guid.NewGuid().ToString() + Path.GetExtension(image.FileName);
@@ -38,20 +41,17 @@ namespace E_COMMERCE_WEBSITE.Repositories.ProductService
                     {
                         await image.CopyToAsync(stream);
                     }
-                    productImage = "Images/Products" + filename;
+                    productImage = "/Images/Products/" + filename;
                 }
                 else
                 {
-                    productImage = "Images/Default/empty.png";
+                    productImage = "/Images/Default/empty.png";
                 }
                 var Addcateg = _mapper.Map<Product>(productsto);
-                _dbContext.products.Add(Addcateg);
+                Addcateg.productImage=productImage;
+                await  _dbContext.products.AddAsync(Addcateg);
                 await _dbContext.SaveChangesAsync();
-            }
-            catch
-            {
-                throw new Exception("error in adding  an image");
-            }
+          
      
         }
 
@@ -95,7 +95,7 @@ namespace E_COMMERCE_WEBSITE.Repositories.ProductService
             return new ProductClientDTO();
            
         }
-        public async Task UpdateProduct(ProductClientDTO updateproducts, int id ,IFormFile image)
+        public async Task UpdateProduct(ProductDTO updateproducts, int id ,IFormFile image)
         {
             try
             {
@@ -105,21 +105,27 @@ namespace E_COMMERCE_WEBSITE.Repositories.ProductService
                     item.productName = updateproducts.productName;
                     item.productDescription = updateproducts.productDescription;
                     item.UnitPrice = updateproducts.UnitPrice;
+                    item.categid= updateproducts.categid;
 
 
                     if (image != null && image.Length > 0)
                     {
                         string filename = Guid.NewGuid().ToString() + Path.GetExtension(image.FileName);
                         string filepath = Path.Combine(_webHostEnvironment.WebRootPath, "Images", "Products", filename);
+
+
                         using (var stream = new FileStream(filepath, FileMode.Create))
                         {
                             await image.CopyToAsync(stream);
                         }
-                        item.productImage = "Images/Products" + filename;
+                        item.productImage = "/Images/Products/" + filename;
+
+                        await _dbContext.SaveChangesAsync();
+
                     }
                     else
                     {
-                        item.productImage = HostUrl + updateproducts.productImage;
+                        throw new InvalidOperationException($"Product with ID  not found.");
                     }
 
                     await _dbContext.SaveChangesAsync();
@@ -160,21 +166,26 @@ namespace E_COMMERCE_WEBSITE.Repositories.ProductService
 
         }
 
-        public async Task<List<ProductClientDTO>> GetTotalproductspurchased(int userid)
+        public async Task<List<ProductClientDTO>> GetTotalproductspurchased(string token)
         {
-            var user=await _dbContext.users.Include(u=>u.orders).ThenInclude(u=>u.Products).FirstOrDefaultAsync(u=>u.id==userid);
+
+
+            int userid = _jwtToken.GetUserIdFromToken(token);
+            if (userid == 0)
+            {
+                throw new Exception("user not found");
+            }
+            var user=await _dbContext.orders.Include(u=>u.orderdetail).ThenInclude(u => u.Product).FirstOrDefaultAsync(u=>u.Userid==userid);
 
             if(user != null)
             {
-                var userdetail = user.orders.Select(u => new ProductClientDTO
+                var userdetail = user.orderdetail.Select(u => new ProductClientDTO
                 {
                    
-                    productId=u.Products.Id,
-                    productName=u.  Products.productName,
-
-                    productDescription=u.Products.productDescription,
-                    productImage= HostUrl+u.Products.productImage,
-                   UnitPrice =u.Products.UnitPrice,
+                    productId=u.Productid,
+                    productName=u.Product.productName,
+                    productImage= HostUrl+u.Product.productImage,
+                   UnitPrice =u.Product.UnitPrice,
                   
                      
 
@@ -187,6 +198,34 @@ namespace E_COMMERCE_WEBSITE.Repositories.ProductService
             }
             return new List<ProductClientDTO>();
         }
+        public async Task<List<ProductClientDTO>>Searcheditems(string search)
+        {
+            try
+            {
+                var searchitems = await _dbContext.products.Where(o => o.productName.Contains(search)).ToListAsync();
 
+                if (searchitems!=null)
+                {
+                    var items = searchitems.Select(o => new ProductClientDTO
+                    {
+                        productId = o.Id,
+                        productDescription = o.productDescription,
+                        productImage = HostUrl + o.productImage,
+                        productName = o.productName,
+                        UnitPrice = o.UnitPrice,
+                       
+
+                    }).ToList();
+
+                    return items;
+                }
+                
+                return new List<ProductClientDTO>();
+            }
+          catch(Exception ex)
+            {
+                throw new Exception("error in searching the product ", ex);
+            }
+        }
     }
 }

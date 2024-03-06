@@ -5,8 +5,7 @@ namespace E_COMMERCE_WEBSITE.Models
     public class User
     {
         public int id {  get; set; }
-        [Required]
-        [MaxLength(20)]
+      
         public string username { get; set; }
         [Required]
         [MinLength(8)]

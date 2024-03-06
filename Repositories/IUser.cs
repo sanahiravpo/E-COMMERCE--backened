@@ -5,7 +5,7 @@ namespace E_COMMERCE_WEBSITE.Repositories
 {
     public interface IUser
     {
-        Task RegisterUser(UserRegistrationDTO userdto);
+        Task<bool> RegisterUser(UserRegistrationDTO userdto);
        Task<User> AuthenticateUser(UserLoginDTO userlogndto);
         public Task<List<UserDTOadmin>> GetAllUser();
         public Task<UserDTOadmin> GetUserById(int id);

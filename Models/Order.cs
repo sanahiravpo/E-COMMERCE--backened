@@ -6,15 +6,25 @@ namespace E_COMMERCE_WEBSITE.Models
     {
         public int Id { get; set; }
         [Required]
-
         public int Userid { get; set;}
+
         [Required]
-        public int Productid { get; set; }
+        public string CustomerName { get; set; }
         [Required]
-        public int Quantity {  get; set; }
-       
-        public virtual Product Products { get; set; }
-        public virtual User User { get; set; }
+        public string CustomerEmail { get; set; }
+        [Required]
+        public string CustomerPhone { get; set; }
+        [Required]
+        public string CustomerCity { get; set; }
+        [Required]
+        public string HomeAddress { get; set; }
+     
+        public string OrderStatus { get; set; }
+        
+        public string TransactionId { get; set; }
+
+      public List<OrderDetail> orderdetail { get; set; }
+        public User User { get; set; }
 
     }
 }

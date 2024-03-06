@@ -15,36 +15,39 @@ namespace E_COMMERCE_WEBSITE.Controllers
             _cart=cart;
         }
         [HttpPost("addproduct")]
-
-        public async Task<IActionResult> AddProductToCart([FromQuery] int userid, int productid) {
-            try
-            {
-                await _cart.AddProductToCart(userid, productid);
+        [Authorize]
+        public async Task<IActionResult> AddProductToCart( int productid) {
+            
+                   var token = HttpContext.Request.Headers["Authorization"].FirstOrDefault();
+                    var splitToken = token.Split(' ');
+                   var jwttoken= splitToken[1];
+                await _cart.AddProductToCart(jwttoken, productid);
                 return Ok("product successfully added to cart");
-            }
-            catch (Exception ex) { }
-            {
-                return BadRequest();
-            }
+           
           
         }
         [HttpGet]
-      
+        [Authorize]
 
-        public async Task<IActionResult> Getcartdetail(int UserId)
+        public async Task<ActionResult> Getcartdetail()
         {
             
-                return Ok(await _cart.Getcartdetail(UserId));
-            
-            
+                var token = HttpContext.Request.Headers["Authorization"].FirstOrDefault();
+                var splitToken = token.Split(' ');
+                var jwttoken = splitToken[1];
+                return Ok(await _cart.Getcartdetail(jwttoken));
+       
         }
         [HttpDelete]
         [Authorize]
-        public async Task<IActionResult> Deletecartitem(int UserId, int productid)
+        public async Task<IActionResult> Deletecartitem( int productid)
         {
             try
             {
-                await _cart.Deletecartitem(UserId, productid);
+                var token = HttpContext.Request.Headers["Authorization"].FirstOrDefault();
+                var splitToken = token.Split(' ');
+                var jwttoken = splitToken[1];
+                await _cart.Deletecartitem(jwttoken, productid);
                 return Ok("the item is removed from the cart");
             }
             catch
@@ -56,31 +59,37 @@ namespace E_COMMERCE_WEBSITE.Controllers
 
         [HttpPut("increase-quantity")]
         [Authorize]
-        public async Task<IActionResult> QuantityIncrease(int userid, int productid)
+        public async Task<IActionResult> QuantityIncrease( int productid)
         {
             try
             {
-                _cart.QuantityIncrease(userid, productid);
+                var token = HttpContext.Request.Headers["Authorization"].FirstOrDefault();
+                var splitToken = token.Split(' ');
+                var jwttoken = splitToken[1];
+              await  _cart.QuantityIncrease(jwttoken, productid);
                 return Ok();
             }
-            catch
+            catch (Exception e)
             {
-                return NotFound();
+                return StatusCode(500, e.Message);
             }
-           
+
         }
         [HttpPut("decrease-quantity")]
         [Authorize]
-        public async Task<IActionResult> QuantityDecrease(int UserId, int productid)
+        public async Task<IActionResult> QuantityDecrease( int productid)
         {
             try
             {
-                await _cart.QuantityDecrease(UserId, productid);
+                var token = HttpContext.Request.Headers["Authorization"].FirstOrDefault();
+                var splitToken = token.Split(' ');
+                var jwttoken = splitToken[1];
+                await _cart.QuantityDecrease(jwttoken, productid);
                 return Ok();
             }
-            catch
+            catch (Exception e)
             {
-                return NotFound();
+                return StatusCode(500, e.Message);
             }
         }
     }

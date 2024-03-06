@@ -3,17 +3,19 @@
     public class OrderDTO
     {
 
-        public int Id { get; set; }
-        public int userid {  get; set; }
-        public string productImage { get; set; }
-        public string productname { get; set; }
-        public string productdescription { get; set; }
-        public Decimal productprice { get; set; }
-        public int Quantity { get; set; }
-        public Decimal TotalPrice { get; set; }
-        public string email { get; set; }
+
+        public string CustomerName { get; set; }
+       
+        public string CustomerPhone { get; set; }
+        public string CustomerCity { get; set; }
+        public string HomeAddress { get; set; }
+        public string TransactionId { get; set; }
+
+        public string CustomerEmail { get; set; }
+
       
-        public string phone { get; set; }
+
+
 
     }
 }

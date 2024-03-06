@@ -16,48 +16,62 @@ namespace E_COMMERCE_WEBSITE.Controllers
     [Route("api/[controller]")]
     [ApiController]
     public class UserController : ControllerBase
-        
+
     {
         private readonly IUser _user;
         private readonly IConfiguration _configuration;
         public static User user = new User();
-        public UserController(IUser user, IConfiguration configuration) {
-            _user= user;
+        public UserController(IUser user, IConfiguration configuration)
+        {
+            _user = user;
             _configuration = configuration;
         }
 
         [HttpPost("register")]
-        public async Task<IActionResult> RegisterUser([FromBody] UserRegistrationDTO userdto)
+        public async Task<ActionResult> RegisterUser([FromBody] UserRegistrationDTO userdto)
         {
+            
+                var userexist = await _user.RegisterUser(userdto);
+            
+           if(!userexist) {
+                return BadRequest("user already exist");
+            }
+            return Ok("user registered successfully");
 
-            string salt = BCrypt.Net.BCrypt.GenerateSalt();
-            string passwordHash = BCrypt.Net.BCrypt.HashPassword(userdto.passwordHash, salt);
-            userdto.passwordHash=passwordHash;
-            _user.RegisterUser(userdto);    
-              return Ok("user registered successfully");
+            //string salt = BCrypt.Net.BCrypt.GenerateSalt();
+            //string passwordHash = BCrypt.Net.BCrypt.HashPassword(userdto.passwordHash, salt);
+            //userdto.passwordHash = passwordHash;
+            //await _user.RegisterUser(userdto);
+            //return Ok("user registered successfully");
 
         }
 
         [HttpPost("login")]
-       
+
         public async Task<IActionResult> AuthenticateUser([FromBody] UserLoginDTO userlogndto)
         {
-            var users =await _user.AuthenticateUser(userlogndto);
+            var users = await _user.AuthenticateUser(userlogndto);
 
-            if (users.email != userlogndto.email)
+            //    if (users.email != userlogndto.email)
+            //{
+            //        return NotFound("User not found");
+            //    }
+            if (users == null)
             {
-                return BadRequest("user not found");
+                return NotFound("User not found");
+
             }
-            if (!BCrypt.Net.BCrypt.Verify(userlogndto.password, users.passwordHash)) 
-            {
-                return BadRequest("wrong password");
+            bool validatePassword = BCrypt.Net.BCrypt.Verify(userlogndto.password, users.passwordHash);
+        if (!validatePassword) 
+        {
+                return BadRequest("Incorrect password");
             }
 
             string token = GenerateToken(users);
 
-            return Ok(new { Token = token });
-           
-        }
+            return Ok(new { Token = token, email = users.email, password = users.passwordHash });
+
+    }
         private string GenerateToken(User users)
         {
             var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));

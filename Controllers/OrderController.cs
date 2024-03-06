@@ -4,6 +4,7 @@ using E_COMMERCE_WEBSITE.Repositories.OrderRepository;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Net;
 
 namespace E_COMMERCE_WEBSITE.Controllers
 {
@@ -13,35 +14,40 @@ namespace E_COMMERCE_WEBSITE.Controllers
     {
 
         private readonly IOrder _order;
-
-
-
         public OrderController(IOrder order)
         {
             _order=order;
         }
 
+
         [HttpPost]
         [Authorize]
-        public async Task<IActionResult> CreateOrder(int userid, int productid, int quantity)
+        public async Task<IActionResult> CreateOrder(OrderDTO orderdto)
         {
             try
             {
-                await _order.CreateOrder(userid, productid, quantity);
-                return Ok("you successfully make an order");
+                var token = HttpContext.Request.Headers["Authorization"].FirstOrDefault();
+                var splitToken = token.Split(' ');
+                var jwttoken = splitToken[1];
+                await _order.CreateOrder(jwttoken, orderdto);
+                return Ok();
             }
-            catch
+            catch(Exception ex)
             {
-                return BadRequest();
+                return BadRequest(ex.Message);
             }
+           
         }
         [HttpGet]
         [Authorize]
-        public async Task<IActionResult> GetAllOrders(int userid)
+        public async Task<IActionResult> GetAllOrders()
         {
             try
             {
-                return Ok(await _order.GetAllOrders(userid));
+                var token = HttpContext.Request.Headers["Authorization"].FirstOrDefault();
+                var splitToken = token.Split(' ');
+                var jwttoken = splitToken[1];
+                return Ok(await _order.GetAllOrders(jwttoken));
             }
             catch
             {
@@ -49,19 +55,19 @@ namespace E_COMMERCE_WEBSITE.Controllers
             }
           
         }
-        [HttpGet("total-revenue")]
-        [Authorize(Roles = "admin")]
-        public async Task<IActionResult> TotalRevenue()
-        {
-            try
-            {
-                return Ok(await _order.TotalRevenue());
-            }
-            catch
-            {
-                return BadRequest();
-            }
-        }
+        //[HttpGet("total-revenue")]
+        //[Authorize(Roles = "admin")]
+        //public async Task<IActionResult> TotalRevenue()
+        //{
+        //    try
+        //    {
+        //        return Ok(await _order.TotalRevenue());
+        //    }
+        //    catch
+        //    {
+        //        return BadRequest();
+        //    }
+        //}
 
         [HttpGet("get-all-user-order-details")]
         [Authorize(Roles = "admin")]
@@ -69,6 +75,7 @@ namespace E_COMMERCE_WEBSITE.Controllers
         {
             try
             {
+
                 return Ok(await _order.GetAlluserOrders(userid));
             }
             catch
@@ -76,5 +83,35 @@ namespace E_COMMERCE_WEBSITE.Controllers
                 return NotFound();
             }
         }
+        [HttpGet("get-user-orders-admin")]
+        [Authorize(Roles = "admin")]
+        public async Task<IActionResult> GetuserordersAdmin(int userid)
+        {
+            try
+            {
+
+                return Ok(await _order.GetuserordersAdmin(userid));
+            }
+            catch
+            {
+                return NotFound();
+            }
+        }
+
+        [HttpGet("get-user-info-admin")]
+        [Authorize(Roles = "admin")]
+        public async Task<IActionResult> GetUserDetails(int userid)
+        {
+            try
+            {
+
+                return Ok(await _order.GetUserDetails(userid));
+            }
+            catch
+            {
+                return NotFound();
+            }
+        }
+
     }
 }

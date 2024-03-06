@@ -54,14 +54,8 @@ namespace E_COMMERCE_WEBSITE.Migrations
                     b.Property<int>("Quantity")
                         .HasColumnType("int");
 
-                    b.Property<decimal>("Totalprice")
-                        .HasColumnType("decimal(18,2)");
-
                     b.Property<int>("cartid")
                         .HasColumnType("int");
-
-                    b.Property<decimal>("price")
-                        .HasColumnType("decimal(18,2)");
 
                     b.HasKey("id");
 
@@ -97,22 +91,73 @@ namespace E_COMMERCE_WEBSITE.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("Productid")
-                        .HasColumnType("int");
+                    b.Property<string>("CustomerCity")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("Quantity")
-                        .HasColumnType("int");
+                    b.Property<string>("CustomerEmail")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("CustomerName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("CustomerPhone")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("HomeAddress")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("OrderStatus")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("nvarchar(max)")
+                        .HasDefaultValue("processing");
+
+                    b.Property<string>("TransactionId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("Userid")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Productid");
-
                     b.HasIndex("Userid");
 
                     b.ToTable("orders");
+                });
+
+            modelBuilder.Entity("E_COMMERCE_WEBSITE.Models.OrderDetail", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("Productid")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("Totalprice")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("orderid")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Productid");
+
+                    b.HasIndex("orderid");
+
+                    b.ToTable("orderDetails");
                 });
 
             modelBuilder.Entity("E_COMMERCE_WEBSITE.Models.Product", b =>
@@ -176,8 +221,7 @@ namespace E_COMMERCE_WEBSITE.Migrations
 
                     b.Property<string>("username")
                         .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("id");
 
@@ -239,21 +283,32 @@ namespace E_COMMERCE_WEBSITE.Migrations
 
             modelBuilder.Entity("E_COMMERCE_WEBSITE.Models.Order", b =>
                 {
-                    b.HasOne("E_COMMERCE_WEBSITE.Models.Product", "Products")
-                        .WithMany()
-                        .HasForeignKey("Productid")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("E_COMMERCE_WEBSITE.Models.User", "User")
                         .WithMany("orders")
                         .HasForeignKey("Userid")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Products");
-
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("E_COMMERCE_WEBSITE.Models.OrderDetail", b =>
+                {
+                    b.HasOne("E_COMMERCE_WEBSITE.Models.Product", "Product")
+                        .WithMany()
+                        .HasForeignKey("Productid")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("E_COMMERCE_WEBSITE.Models.Order", "Order")
+                        .WithMany("orderdetail")
+                        .HasForeignKey("orderid")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Order");
+
+                    b.Navigation("Product");
                 });
 
             modelBuilder.Entity("E_COMMERCE_WEBSITE.Models.Product", b =>
@@ -294,6 +349,11 @@ namespace E_COMMERCE_WEBSITE.Migrations
             modelBuilder.Entity("E_COMMERCE_WEBSITE.Models.Category", b =>
                 {
                     b.Navigation("product");
+                });
+
+            modelBuilder.Entity("E_COMMERCE_WEBSITE.Models.Order", b =>
+                {
+                    b.Navigation("orderdetail");
                 });
 
             modelBuilder.Entity("E_COMMERCE_WEBSITE.Models.Product", b =>

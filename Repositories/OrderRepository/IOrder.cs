@@ -5,12 +5,13 @@ namespace E_COMMERCE_WEBSITE.Repositories.OrderRepository
 {
     public interface IOrder
     {
-        public Task<bool> CreateOrder( int userid, int productid,int Quantity);
-        public Task<List<OrderDTO>> GetAllOrders(int userid);
-        public Task <decimal> TotalRevenue();
-        public  Task<List<OrderAdminDTO>> GetAlluserOrders(int userid);
+        public Task<bool> CreateOrder(string token, OrderDTO orderdto);
+        public Task<List<OrderuserDTO>> GetAllOrders(string token);
+        //public Task <decimal> TotalRevenue();
+        public  Task<OrderDetailViewUserDTO> GetAlluserOrders(int id);
 
-
+public Task<List<OrderAdminDTO>> GetuserordersAdmin (int userid);
+        public Task<List<OrderedUserDTO>> GetUserDetails(int userid);
 
     }
 }

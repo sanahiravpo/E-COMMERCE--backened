@@ -12,6 +12,8 @@ using E_COMMERCE_WEBSITE.Repositories.ProductService;
 using E_COMMERCE_WEBSITE.Repositories.CartServices;
 using E_COMMERCE_WEBSITE.Repositories.WishlistRepository;
 using E_COMMERCE_WEBSITE.Repositories.OrderRepository;
+using E_COMMERCE_WEBSITE.JwtServise;
+
 
 
 namespace E_COMMERCE_WEBSITE
@@ -24,7 +26,11 @@ namespace E_COMMERCE_WEBSITE
             var builder = WebApplication.CreateBuilder(args);
 
 
-           
+            builder.Services.AddControllers();
+            // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+            builder.Services.AddEndpointsApiExplorer();
+            builder.Services.AddSwaggerGen();
+
             // Add services to the container.
             builder.Services.AddScoped<UserDBContext>();
             builder.Services.AddScoped<IUser, UserRepositories>();
@@ -33,13 +39,10 @@ namespace E_COMMERCE_WEBSITE
             builder.Services.AddScoped<ICart, CartRepository>();
             builder.Services.AddScoped<IWishlist, WishListRepository>();
             builder.Services.AddScoped<IOrder, OrderRepository>();
+            builder.Services.AddScoped<IJwtToken,JwtRepository> ();
             builder.Services.AddAutoMapper(typeof(UserProfiler));
 
 
-            builder.Services.AddControllers();
-            // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-            builder.Services.AddEndpointsApiExplorer();
-            builder.Services.AddSwaggerGen();
             builder.Services.AddAuthentication(options =>
             {
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -54,12 +57,20 @@ namespace E_COMMERCE_WEBSITE
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"])),
                     ValidateIssuer = false,
                     ValidateAudience = false,
-                    ValidateLifetime = false,
+                    ValidateLifetime = true,
                     ValidateIssuerSigningKey = true
                 };
             });
-
-
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("ReactPolicy", builder =>
+                {
+                    builder.AllowAnyOrigin()
+                           .AllowAnyMethod()
+                           .AllowAnyHeader();
+                });
+            });
+            builder.Services.AddAuthorization();
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
@@ -69,12 +80,14 @@ namespace E_COMMERCE_WEBSITE
                 app.UseSwaggerUI();
             }
 
+            app.UseCors("ReactPolicy");
+            app.UseStaticFiles();
             app.UseHttpsRedirection();
 
             
             app.UseAuthentication();
             app.UseAuthorization();
-            app.UseStaticFiles();
+           
             app.MapControllers();
 
             app.Run();

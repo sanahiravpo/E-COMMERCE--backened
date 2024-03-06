@@ -20,24 +20,53 @@ namespace E_COMMERCE_WEBSITE.Controllers
 
         [HttpPost]
         [Authorize]
-        public IActionResult  AddToWishList(int userid, int productid)
+        public async Task<IActionResult>  AddToWishList( int productid)
         {
-            _wishlist.AddToWishList(userid, productid);
-            return Ok();
+            try
+            {
+                var token = HttpContext.Request.Headers["Authorization"].FirstOrDefault();
+                var splitToken = token.Split(' ');
+                var jwtToken = splitToken[1];
+                var isExist = await _wishlist.AddToWishList(jwtToken, productid);
+                if (!isExist)
+                {
+                    return BadRequest("item already in the whishList");
+                }
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
         }
 
         [HttpGet]
         [Authorize]
-        public IActionResult GetAllWishlistDetails(int userid)
+        public async Task <IActionResult> GetAllWishlistDetails()
         {
-           
-            return Ok(_wishlist.GetAllWishlistDetails(userid));
+            try
+            {
+                var token = HttpContext.Request.Headers["Authorization"].FirstOrDefault();
+                var splitToken = token.Split(' ');
+                var jwtToken = splitToken[1];
+               
+
+                return Ok(await _wishlist.GetAllWishlistDetails(jwtToken));
+            }
+            catch(Exception ex)
+            {
+               throw new Exception(ex.Message);
+            }
         }
         [HttpDelete]
         [Authorize]
-        public IActionResult DeleteWishList(int userid,int productid)
+        public IActionResult DeleteWishList( int productid)
         {
-            _wishlist.DeleteWishList(userid, productid);
+
+            var token = HttpContext.Request.Headers["Authorization"].FirstOrDefault();
+            var splitToken = token.Split(' ');
+            var jwtToken = splitToken[1];
+            _wishlist.DeleteWishList(jwtToken, productid);
             return Ok();
         }
     }

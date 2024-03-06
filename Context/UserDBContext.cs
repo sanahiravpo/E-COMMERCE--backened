@@ -1,4 +1,5 @@
-﻿using E_COMMERCE_WEBSITE.Models;
+﻿using E_COMMERCE_WEBSITE.Migrations;
+using E_COMMERCE_WEBSITE.Models;
 using E_COMMERCE_WEBSITE.Repositories.categories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -59,16 +60,27 @@ namespace E_COMMERCE_WEBSITE.Context
           .WithMany(u=>u.orders)
           .HasForeignKey(p => p.Userid);
 
+            modelBuilder.Entity<OrderDetail>()
+         .HasOne(e => e.Order)
+         .WithMany(e=>e.orderdetail)
+            .HasForeignKey(p => p.orderid);
+
+            modelBuilder.Entity<OrderDetail>()
+                .HasOne(o=>o.Product)
+                .WithMany()
+                .HasForeignKey(oi => oi.Productid);
+
             modelBuilder.Entity<Order>()
-         .HasOne(e => e.Products)
-         .WithMany()
-         .HasForeignKey(p => p.Productid);
+               .Property(o => o.OrderStatus)
+               .HasDefaultValue("processing");
+
 
             base.OnModelCreating(modelBuilder);
         }
         public DbSet<User>users { get; set; }
         public DbSet<Cart> carts { get; set; }
         public DbSet<Order> orders { get; set; }
+        public DbSet<OrderDetail> orderDetails { get; set; }
         public DbSet<Product> products { get; set; }
         public DbSet<CartItem> cartitems { get; set; }
         public DbSet<WishList> wishlists { get; set; }

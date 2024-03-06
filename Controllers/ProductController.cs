@@ -19,7 +19,7 @@ namespace E_COMMERCE_WEBSITE.Controllers
             _webHostEnvironment = webHostEnvironment;
         }
         [HttpGet]
-        [Authorize]
+     
         public async Task<IActionResult> GetAllProducts()
         {
             try
@@ -46,22 +46,24 @@ namespace E_COMMERCE_WEBSITE.Controllers
         }
         [HttpPost]
         [Authorize(Roles = "admin")]
-        public async Task<IActionResult> AddProduct([FromBody] ProductClientDTO productsto, IFormFile image)
+        public async Task<IActionResult> AddProduct([FromForm] ProductDTO productsto, IFormFile image)
         {
             try
             {
-               await _product.AddProduct(productsto,image);
+                await _product.AddProduct(productsto, image);
                 return Ok("product added successfully");
             }
-            catch
+
+            catch 
             {
                 return BadRequest();
             }
+            
 
         }
         [HttpPut]
         [Authorize(Roles = "admin")]
-        public async Task<IActionResult> UpdateProduct([FromBody] ProductClientDTO updateproducts, int id,IFormFile image)
+        public async Task<IActionResult> UpdateProduct([FromForm] ProductDTO updateproducts, int id,IFormFile image)
         {
             try
             {
@@ -98,12 +100,12 @@ namespace E_COMMERCE_WEBSITE.Controllers
             }
         }
         [HttpGet("Totalproductspurchased")]
-        public async Task<IActionResult> GetTotalproductspurchased(int userid)
+        public async Task<IActionResult> GetTotalproductspurchased(string token)
 
         {
             try
             {
-                var product = await _product.GetTotalproductspurchased(userid);
+                var product = await _product.GetTotalproductspurchased(token);
                 return Ok(product);
             }
             catch
@@ -111,5 +113,22 @@ namespace E_COMMERCE_WEBSITE.Controllers
                 return BadRequest();
             }
         }
+        [HttpGet("search-products")]
+        public async Task<IActionResult>Searcheditems(string search)
+        {
+
+            try
+            {
+                
+                return Ok(await _product.Searcheditems(search));
+            }
+            catch
+            {
+                return BadRequest("item not found");
+            }
+
+
+        }
+
     }
 }

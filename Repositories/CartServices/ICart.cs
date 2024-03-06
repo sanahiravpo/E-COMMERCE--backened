@@ -5,11 +5,11 @@ namespace E_COMMERCE_WEBSITE.Repositories.CartServices
 {
     public interface ICart
     {
-        Task AddProductToCart(int userid, int productid);
-        public Task<List<CartDTO>> Getcartdetail(int UserId);
-        public Task Deletecartitem(int UserId, int productid);
-        public Task QuantityIncrease(int userid, int productid);
-        public Task QuantityDecrease(int UserId, int productid);
+        Task AddProductToCart(string token, int productid);
+        public Task<List<CartDTO>> Getcartdetail(string token);
+        public Task Deletecartitem(string token, int productid);
+        public Task QuantityIncrease(string token, int productid);
+        public Task QuantityDecrease(string token, int productid);
 
 
 
